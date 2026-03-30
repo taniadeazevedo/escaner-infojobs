@@ -1450,7 +1450,7 @@ const App = () => {
                 maxWidth: '520px',
                 margin: '0 auto 20px'
               }}>
-                Especialista en Branding y Diseño Web enfocada en crear productos que conectan.
+Especialista en Branding y Diseño Web<br />enfocada en crear productos que conectan.
               </p>
               
               <div style={{
