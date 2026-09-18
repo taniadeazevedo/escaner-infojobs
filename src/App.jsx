@@ -1426,8 +1426,8 @@ const App = () => {
                 border: `3px solid ${COLORS.primary}`,
                 boxShadow: `0 0 20px rgba(22, 125, 183, 0.3)`
               }}>
-                <img 
-                  src="https://taniadeazevedo.es/wp-content/uploads/2026/01/Gemini_Generated_Image_23gss023gss023gs-removebg-preview-Editada-e1770114580187.png" 
+                <img
+                  src="/tania-bio.jpeg"
                   alt="Tania de Azevedo"
                   style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 30%' }}
                 />
