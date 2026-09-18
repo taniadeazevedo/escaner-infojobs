@@ -618,11 +618,11 @@ const App = () => {
             border: '2px solid rgba(22, 125, 183, 0.3)',
             boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
           }}>
-            <img 
-              src="https://taniadeazevedo.es/wp-content/uploads/2025/11/cropped-Yo.jpg" 
-              alt="Tania" 
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-            /> 
+            <img
+              src="/yo.jpeg"
+              alt="Tania"
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
           </div>
           <span style={{ 
             color: '#999', 
