@@ -1,51 +1,247 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap'); /* fuente Inter */
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
+/* ===== COLORES Y MEDIDAS (se cambian aquí y cambian en toda la app) ===== */
 :root {
-  --cian: #22D3EE;
-  --emerald: #34D399;
-  --amarillo: #FBBF24;
-  --gris-claro: #E5E7EB;
-  --gris-medio: #9CA3AF;
-  --fondo: #0B1020;
+  --azul: #167db7;                      /* color principal (InfoJobs) */
+  --naranja: #ff912c;                   /* color de acento */
+  --naranja-texto: #b85c00;             /* naranja oscuro: el claro no se lee sobre blanco */
+  --texto: #1a1a1a;                     /* texto normal */
+  --gris: #5a6b7a;                      /* texto secundario */
+  --azul-suave: rgba(22, 125, 183, 0.06); /* fondo de cajas */
+  --azul-linea: rgba(22, 125, 183, 0.18); /* bordes */
+  --radio: 16px;                        /* redondeo de cajas */
 }
+
+/* ===== BASE ===== */
+* { margin: 0; padding: 0; box-sizing: border-box; } /* quita márgenes por defecto */
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
-  color: var(--gris-claro);
+  font-family: 'Inter', system-ui, sans-serif;
+  color: var(--texto);
+  background: radial-gradient(circle at top right, #ffffff 0%, #e2e8f0 100%); /* fondo claro en degradado */
+  background-attachment: fixed;        /* el fondo no se mueve al hacer scroll */
+  -webkit-font-smoothing: antialiased; /* letras más finas en Mac */
 }
 
-#root {
-  min-height: 100vh;
+button { font: inherit; }              /* los botones usan la misma fuente que el resto */
+:focus-visible { outline: 3px solid var(--azul); outline-offset: 3px; } /* borde visible al navegar con teclado */
+
+/* ===== ESTRUCTURA ===== */
+.app { min-height: 100dvh; display: flex; flex-direction: column; } /* cabecera arriba, marco debajo */
+
+.marco {                               /* en móvil: sin tarjeta, a todo el ancho */
+  max-width: 650px;
+  margin: 0 auto;
+  width: 100%;
+  flex: 1;                             /* ocupa el alto que deja la cabecera */
+  display: flex;
+  flex-direction: column;
 }
 
-/* Smooth scrolling */
-html {
-  scroll-behavior: smooth;
+.pantalla {                            /* cada pantalla del test */
+  flex: 1;                             /* ocupa el alto que queda */
+  display: flex;
+  flex-direction: column;
+  gap: 18px;                           /* separación entre sus elementos */
+  padding: 26px 20px 28px;
+  animation: entrar 0.45s ease-out;    /* aparece subiendo un poco */
+}
+.pantalla--centrada { align-items: center; text-align: center; justify-content: center; }
+
+/* ===== CABECERA ===== */
+.cabecera {
+  position: sticky; top: 0; z-index: 10;     /* se queda pegada arriba */
+  display: flex; justify-content: center; align-items: center; gap: 12px;
+  padding: 14px 20px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(15px);               /* efecto cristal */
+  border-bottom: 1px solid var(--azul-linea);
+}
+.cabecera__foto { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid var(--azul-linea); }
+.cabecera__por { color: var(--gris); font-weight: 600; font-size: 18px; }
+.cabecera__marca { color: var(--azul); font-weight: 800; font-size: 18px; letter-spacing: -0.5px; }
+
+/* ===== TEXTOS ===== */
+.titulo { font-size: 30px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.1; }
+.titulo--pequeno { font-size: 19px; font-weight: 700; }
+.titulo--revelado { animation: revelar 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.2); } /* el arquetipo entra con rebote */
+.texto { color: var(--gris); font-size: 15px; line-height: 1.6; max-width: 400px; }
+.texto--intro { font-size: 16px; }
+.nota { color: var(--gris); font-size: 13px; line-height: 1.5; }
+.nota--cursiva { font-style: italic; }
+.etiqueta {                            /* texto pequeño en mayúsculas */
+  color: var(--gris); font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1.5px;
+}
+.etiqueta--naranja { color: var(--naranja-texto); }
+.chapa {                               /* pastilla de la portada */
+  background: var(--azul-suave); color: var(--azul);
+  padding: 6px 14px; border-radius: 20px;
+  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
+/* ===== BOTONES ===== */
+.boton {
+  display: inline-flex; align-items: center; justify-content: center;
+  align-self: center;                  /* centrado y solo tan ancho como su texto */
+  padding: 15px 34px;
+  border: 2px solid transparent; border-radius: 50px;
+  font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;
+  text-decoration: none; cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+.boton:hover:not(:disabled) { transform: translateY(-2px); } /* se levanta al pasar el ratón */
+.boton:disabled { opacity: 0.4; cursor: not-allowed; }       /* apagado si no se puede pulsar */
+.boton--naranja { background: var(--naranja); color: var(--texto); box-shadow: 0 10px 20px rgba(255, 145, 44, 0.25); }
+.boton--azul { background: var(--azul); color: #fff; box-shadow: 0 8px 18px rgba(22, 125, 183, 0.22); }
+.boton--linea { background: #fff; color: var(--azul); border-color: var(--azul-linea); } /* botón secundario */
+.boton--grande { padding: 19px 44px; border-radius: 16px; }
+.boton--abajo { margin-top: auto; }    /* se va al fondo de la pantalla */
+.enlace { background: none; border: none; color: var(--gris); font-size: 13px; text-decoration: underline; cursor: pointer; padding: 10px; }
+
+/* ===== RADAR (portada y pantalla de análisis) ===== */
+.radar {
+  position: relative; width: 170px; height: 170px;
+  display: grid; place-items: center;  /* centra el pentágono */
+  border: 1px dashed var(--azul); border-radius: 50%;
+  overflow: hidden;                    /* recorta el haz al círculo */
+}
+.radar__barrido {                      /* el haz que gira */
+  position: absolute; inset: 0;
+  background: conic-gradient(from 0deg, transparent 0deg, rgba(22, 125, 183, 0.28) 60deg, transparent 61deg);
+  animation: girar 3s linear infinite;
+}
+.radar--rapido { width: 110px; height: 110px; }
+.radar--rapido .radar__barrido { animation-duration: 1s; }
+
+/* ===== PROGRESO Y MEDIDOR ===== */
+.progreso { display: flex; justify-content: space-between; align-items: center; }
+.pasos { display: flex; gap: 4px; }    /* las 15 rayitas */
+.paso { flex: 1; height: 4px; border-radius: 4px; background: var(--azul-linea); transition: background 0.3s ease; }
+.paso--hecho { background: var(--azul); }
+.paso--actual { background: var(--naranja); }
+
+.medidor { background: var(--azul-suave); border-radius: 12px; padding: 12px 14px; }
+.medidor__fila { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+.medidor__numero { color: var(--azul); font-weight: 800; font-size: 18px; font-variant-numeric: tabular-nums; } /* cifras del mismo ancho: no baila */
+
+.barra { width: 100%; height: 6px; background: var(--azul-linea); border-radius: 10px; overflow: hidden; }
+.barra--gruesa { height: 12px; }
+.barra__relleno {
+  height: 100%; border-radius: 10px;
+  background: var(--azul);             /* azul liso: más limpio que el degradado */
+  transition: width 0.9s cubic-bezier(0.4, 0, 0.2, 1); /* crece suave */
 }
 
-::-webkit-scrollbar-track {
-  background: #0F172A;
+/* ===== PREGUNTA Y OPCIONES ===== */
+.pregunta { font-size: 20px; font-weight: 600; line-height: 1.4; text-align: center; }
+.opciones { display: flex; flex-direction: column; gap: 10px; }
+.opcion {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; padding: 14px 16px; text-align: left;
+  background: #fff; color: var(--texto);
+  border: 2px solid var(--azul-linea); border-radius: 12px;
+  font-size: 15px; line-height: 1.4; cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.15s ease;
+}
+.opcion:hover { border-color: var(--azul); }
+.opcion:active { transform: scale(0.99); }          /* se hunde un poco al pulsar */
+.opcion--marcada { border-color: var(--azul); background: rgba(22, 125, 183, 0.08); font-weight: 600; }
+.opcion__tecla {                                    /* el numerito 1-4 */
+  flex: none; width: 26px; height: 26px; display: grid; place-items: center;
+  border-radius: 8px; background: var(--azul-suave); color: var(--azul); font-size: 12px; font-weight: 700;
+}
+.opcion--marcada .opcion__tecla { background: var(--azul); color: #fff; }
+.reaccion { min-height: 42px; text-align: center; color: var(--azul); font-size: 14px; font-weight: 600; } /* min-height: reserva el hueco para que nada salte */
+
+/* ===== SELLOS (logros) ===== */
+.sello { display: flex; align-items: center; gap: 12px; }
+.sello__emoji { font-size: 26px; }
+.sello__texto { font-size: 14px; font-weight: 600; }
+.sello--grande {                                    /* el sello recién ganado */
+  flex-direction: column; gap: 8px;
+  padding: 26px 30px; border: 2px dashed var(--naranja); border-radius: 20px; background: #fff;
+  animation: estampar 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.3); /* cae como un tampón */
+}
+.sello--grande .sello__emoji { font-size: 64px; }
+.sello--grande .sello__texto { font-size: 18px; font-weight: 800; }
+.sellos-mini { display: flex; gap: 8px; }
+.sello-mini {                                       /* hueco de sello */
+  width: 40px; height: 40px; display: grid; place-items: center;
+  border: 2px dashed var(--azul-linea); border-radius: 50%; color: var(--gris); font-size: 18px;
+}
+.sello-mini--ganado { border-style: solid; border-color: var(--naranja); background: #fff; }
+
+/* ===== ANÁLISIS ===== */
+.analizando { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding: 40px 30px; text-align: center; }
+.analizando__texto { color: var(--azul); font-size: 18px; font-weight: 600; }
+
+/* ===== RESULTADOS ===== */
+.resultados { gap: 30px; }                          /* más aire entre secciones en vez de cajas */
+.veredicto { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
+.numero-grande { color: var(--azul); font-size: 72px; font-weight: 800; line-height: 1; margin-top: 8px; font-variant-numeric: tabular-nums; }
+
+.escala { list-style: none; display: flex; gap: 5px; width: 100%; max-width: 320px; } /* 6 tramos en fila */
+.escala__tramo { flex: 1; height: 8px; border-radius: 8px; background: var(--azul-linea); transition: background 0.4s ease; }
+.escala__tramo--lleno { background: var(--azul); }  /* tramos hasta tu nivel */
+.escala__tramo:nth-child(2) { transition-delay: 0.1s; } /* se rellenan uno detrás de otro */
+.escala__tramo:nth-child(3) { transition-delay: 0.2s; }
+.escala__tramo:nth-child(4) { transition-delay: 0.3s; }
+.escala__tramo:nth-child(5) { transition-delay: 0.4s; }
+.escala__tramo:nth-child(6) { transition-delay: 0.5s; }
+
+.diagnostico { font-size: 17px; line-height: 1.6; text-align: center; } /* el mensaje, sin caja */
+.lista { list-style: none; display: grid; gap: 8px; align-self: center; font-size: 14px; line-height: 1.5; color: var(--gris); }
+.lista li::before { content: '✓  '; color: var(--azul); font-weight: 700; } /* el check delante de cada rasgo */
+
+.bloque { display: flex; flex-direction: column; gap: 14px; padding-top: 26px; border-top: 1px solid var(--azul-linea); } /* sección separada por una línea fina */
+.bloque--centrado { align-items: center; text-align: center; }
+.bloque > .etiqueta { text-align: center; }
+
+.sellos { list-style: none; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; } /* los sellos se colocan solos en filas */
+.sello--chip {                                      /* cada sello, como un tampón */
+  gap: 8px; padding: 8px 14px 8px 10px;
+  background: #fff; border: 1.5px dashed var(--naranja); border-radius: 50px;
+  animation: estampar 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.3) backwards; /* backwards: invisible hasta que le toca */
+}
+.sello--chip .sello__emoji { font-size: 20px; }
+.sello--chip .sello__texto { font-size: 13px; }
+
+.detalle { border-top: 1px solid var(--azul-linea); padding-top: 18px; }
+.detalle summary { cursor: pointer; text-align: center; color: var(--azul); font-size: 14px; font-weight: 600; } /* el texto que despliega */
+.metrica { margin-top: 16px; }
+.metrica__fila { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; }
+.metrica__fila strong { color: var(--azul); }
+
+.caja { background: var(--azul-suave); border-radius: var(--radio); padding: 22px; }
+.caja--naranja { background: rgba(255, 145, 44, 0.08); display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+.caja--naranja .boton { margin-top: 10px; }
+.roles { font-size: 17px; font-weight: 700; line-height: 1.4; }
+
+.compartir { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+.tarjeta { width: 100%; max-width: 220px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12); }
+.acciones { display: flex; flex-direction: column; gap: 10px; align-items: center; width: 100%; max-width: 260px; }
+.acciones .boton { width: 100%; padding: 12px 20px; font-size: 13px; }
+
+.creadora { padding-top: 30px; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; border-top: 1px solid var(--azul-linea); }
+.creadora__foto { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; object-position: center 30%; border: 3px solid var(--azul); }
+
+/* ===== ESCRITORIO: el contenido va en una tarjeta blanca ===== */
+@media (min-width: 768px) {
+  .marco { flex: none; min-height: 680px; margin: 40px auto; background: #fff; border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); }
+  .pantalla { padding: 40px 48px; }
+  .titulo { font-size: 38px; }
+  .pregunta { font-size: 22px; }
+  .compartir { flex-direction: row; justify-content: center; gap: 28px; } /* tarjeta a la izquierda, botones a la derecha */
 }
 
-::-webkit-scrollbar-thumb {
-  background: var(--cian);
-  border-radius: 4px;
-}
+/* ===== ANIMACIONES ===== */
+@keyframes entrar { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+@keyframes girar { to { transform: rotate(360deg); } }
+@keyframes revelar { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: none; } }
+@keyframes estampar { from { opacity: 0; transform: scale(1.6) rotate(-8deg); } to { opacity: 1; transform: none; } }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #06B6D4;
+/* Si la persona ha pedido menos movimiento en su sistema, quitamos animaciones */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
 }

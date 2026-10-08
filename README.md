@@ -38,62 +38,66 @@ El script automatiza todo:
 ```
 escaner-infojobs/
 ├── src/
-│   ├── App.jsx          # Componente principal
-│   ├── main.jsx         # Entry point
-│   └── index.css        # Estilos globales
-├── public/
-│   └── _redirects       # Configuración SPA
-├── index.html           # HTML base con meta tags OG
-├── package.json         # Dependencias
-├── vite.config.js       # Configuración Vite
-├── netlify.toml         # Configuración Netlify (Node 20)
-├── deploy.sh            # Script de deploy automatizado
-├── .gitignore           # Archivos ignorados por Git
-└── README.md            # Este archivo
+│   ├── App.jsx                  # Decide qué pantalla se ve y guarda las respuestas
+│   ├── main.jsx                 # Entry point
+│   ├── index.css                # Todos los estilos (colores en :root)
+│   ├── data/
+│   │   ├── bloques.js           # Preguntas, sellos y frases del escáner
+│   │   └── arquetipos.js        # Los 6 arquetipos, la escala y los enlaces de ofertas
+│   ├── lib/
+│   │   ├── puntuacion.js        # Cálculo del resultado
+│   │   └── compartir.js         # Enlace del resultado y tarjeta-imagen
+│   └── components/
+│       ├── Pantallas.jsx        # Portada, pregunta, transición y análisis
+│       ├── Resultados.jsx       # Pantalla de resultados
+│       └── Medidor.jsx          # Barra, medidor en vivo y contador animado
+├── public/                      # Fotos y _redirects
+├── index.html                   # HTML base con meta tags OG
+├── netlify.toml                 # Configuración Netlify (Node 20)
+└── deploy.sh                    # Script de deploy automatizado
 ```
 
 ---
 
 ## 🛠️ Stack Tecnológico
 
-- **Framework**: React 18.3.1
-- **Build Tool**: Vite 7.3.1
+- **Framework**: React 18
+- **Build Tool**: Vite 7
 - **Hosting**: Netlify
-- **Estilos**: Tailwind CSS (CDN)
-- **Gráficos**: Chart.js 4.4.0 (CDN)
+- **Estilos**: CSS propio (sin librerías)
 
 ---
 
 ## 🎨 Características
 
-- ✅ 15 preguntas divididas en 5 bloques temáticos
-- ✅ Sistema de arquetipos laborales (6 perfiles)
-- ✅ Análisis por dimensiones (Bienestar, Cultura, Cinismo, Ambición, Discurso)
-- ✅ Diseño glassmorphism responsive
-- ✅ Integración con InfoJobs
-- ✅ Meta tags Open Graph optimizados
-- ✅ SEO friendly
+- ✅ 15 preguntas en 5 bloques (2 puntúan + 1 de perfil por bloque)
+- ✅ Medidor de nivel corporativo que se mueve en vivo al responder
+- ✅ Reacción del escáner a cada respuesta
+- ✅ Un sello (logro) desbloqueado por bloque
+- ✅ 6 arquetipos + perfil creativo / analítico / híbrido
+- ✅ Tarjeta-imagen del resultado para descargar y compartir
+- ✅ Enlace que abre tu resultado (`?r=...`)
+- ✅ Teclado (1-4 y Enter), responsive y accesible
 
 ---
 
-## 📱 Bloques del Test
+## 🧮 Cómo se puntúa
 
-1. **Bienestar** - ¿Cómo gestionas el equilibrio vida-trabajo?
-2. **Cultura** - Tu percepción del ambiente corporativo
-3. **Cinismo** - Nivel de escepticismo laboral
-4. **Ambición** - Tu relación con el éxito profesional
-5. **Discurso** - Cómo te adaptas al lenguaje corporativo
+- Cada pregunta corporativa vale de 1 (nada corporativo) a 4 (muy corporativo).
+- El **nivel corporativo** es la media de las 10 preguntas corporativas, pasada a 0-100 %.
+- Las 5 preguntas de perfil **no puntúan**: solo deciden si eres creativo, analítico o híbrido.
+- Cada barra de "dimensión" es la media de un bloque.
 
 ---
 
-## 🎭 Arquetipos Detectados
+## 🎭 Arquetipos (de menos a más corporativo)
 
-1. **El Equilibrista** - Pragmático con principios
-2. **El Rebelde Funcional** - Crítico pero operativo
-3. **El Candidato Prioritario** - Ambición pragmática
-4. **El Arquitecto del Discurso** - Simulación avanzada
-5. **El Director de Operaciones** - Integración sistémica
-6. **La Entidad Corporativa** - Metamorfosis completa
+1. **Especialista en irse a su hora** - Límites con contrato indefinido
+2. **Disidente con nómina** - Critica al sistema, cobra del sistema
+3. **Estratega del toma y daca** - Ambición con calculadora
+4. **Portavoz oficial del humo** - Bilingüe: español y corporativo
+5. **Evangelista del KPI** - Lo que no se mide, no existe
+6. **Entidad corporativa** - Persona física, alma jurídica
 
 ---
 
