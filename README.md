@@ -43,10 +43,12 @@ escaner-infojobs/
 │   ├── index.css                # Todos los estilos (colores en :root)
 │   ├── data/
 │   │   ├── bloques.js           # Preguntas, sellos y frases del escáner
-│   │   └── arquetipos.js        # Los 6 arquetipos, la escala y los enlaces de ofertas
+│   │   ├── arquetipos.js        # Los 6 arquetipos, la escala y los enlaces de ofertas
+│   │   └── secretos.js          # Los 6 sellos secretos
 │   ├── lib/
 │   │   ├── puntuacion.js        # Cálculo del resultado
-│   │   └── compartir.js         # Enlace del resultado y tarjeta-imagen
+│   │   ├── compartir.js         # Enlaces (resultado y reto) y tarjeta-imagen
+│   │   └── memoria.js           # Progreso y colección en el navegador
 │   └── components/
 │       ├── Pantallas.jsx        # Portada, pregunta, transición y análisis
 │       ├── Resultados.jsx       # Pantalla de resultados
@@ -64,20 +66,20 @@ escaner-infojobs/
 - **Framework**: React 18
 - **Build Tool**: Vite 7
 - **Hosting**: Netlify
-- **Estilos**: CSS propio (sin librerías)
+- **Estilos**: CSS propio (sin librerías) · Inter + IBM Plex Mono
 
 ---
 
 ## 🎨 Características
 
-- ✅ 15 preguntas en 5 bloques (2 puntúan + 1 de perfil por bloque)
-- ✅ Medidor de nivel corporativo que se mueve en vivo al responder
-- ✅ Reacción del escáner a cada respuesta
-- ✅ Un sello (logro) desbloqueado por bloque
-- ✅ 6 arquetipos + perfil creativo / analítico / híbrido
-- ✅ Tarjeta-imagen del resultado para descargar y compartir
-- ✅ Enlace que abre tu resultado (`?r=...`)
-- ✅ Teclado (1-4 y Enter), responsive y accesible
+- ✅ Estética de expediente de RRHH: acreditación, formulario, informe y carnet para compartir
+- ✅ 15 preguntas en 5 bloques (2 puntúan + 1 de perfil por bloque), un toque por pregunta y botón "atrás"
+- ✅ Medidor en vivo con avisos de ascenso y bajada de arquetipo
+- ✅ Un sello por bloque y 6 sellos secretos
+- ✅ Reto a un compañero (`?reto=...&de=Nombre`) con comparación al final
+- ✅ Colección de arquetipos y progreso guardados en el navegador
+- ✅ Tarjeta-imagen descargable y enlace que abre tu resultado (`?r=...`)
+- ✅ Teclado (1-4, flecha izquierda), responsive y accesible
 
 ---
 

@@ -16,7 +16,6 @@ export const BLOQUES = [
       alto: { emoji: "🍌", texto: "Fan del salario emocional" }  // si respondes muy corporativo
     },
     emoji: "💼",
-    color: "#ff912c",
     preguntas: [
       {
         p: "La oferta dice: 'salario competitivo + fruta fresca los martes'. ¿Qué entiendes?",
@@ -56,10 +55,9 @@ export const BLOQUES = [
     metrica: "Presentismo", // nombre de la barra de este bloque (más alto = más corporativo)
     sellos: { // logro que se desbloquea al terminar el bloque
       bajo: { emoji: "🚪", texto: "Fichaje de salida impecable" }, // si respondes poco corporativo
-      alto: { emoji: "💡", texto: "Último en apagar la luz" }  // si respondes muy corporativo
+      alto: { emoji: "💡", texto: "Apaga la luz de la oficina" }  // si respondes muy corporativo
     },
     emoji: "⏱️",
-    color: "#167db7",
     preguntas: [
       {
         p: "Son las 18:01 y nadie se levanta. ¿Qué haces?",
@@ -99,10 +97,9 @@ export const BLOQUES = [
     metrica: "Fe en 'somos una familia'", // nombre de la barra de este bloque (más alto = más corporativo)
     sellos: { // logro que se desbloquea al terminar el bloque
       bajo: { emoji: "🍻", texto: "Tiene amigos de verdad" }, // si respondes poco corporativo
-      alto: { emoji: "🕴️", texto: "Networker hasta dormido" }  // si respondes muy corporativo
+      alto: { emoji: "🕴️", texto: "Networking hasta en sueños" }  // si respondes muy corporativo
     },
     emoji: "🤝",
-    color: "#22c55e",
     preguntas: [
       {
         p: "En la entrevista te dicen: 'Aquí somos como una familia'.",
@@ -142,10 +139,9 @@ export const BLOQUES = [
     metrica: "Digestión de humo", // nombre de la barra de este bloque (más alto = más corporativo)
     sellos: { // logro que se desbloquea al terminar el bloque
       bajo: { emoji: "🔥", texto: "Detector de humo corporativo" }, // si respondes poco corporativo
-      alto: { emoji: "📣", texto: "Embajador de marca involuntario" }  // si respondes muy corporativo
+      alto: { emoji: "📣", texto: "Altavoz de marca involuntario" }  // si respondes muy corporativo
     },
     emoji: "🎯",
-    color: "#a855f7",
     preguntas: [
       {
         p: "La empresa anuncia 'Somos sostenibles' y te pide imprimir 300 copias del comunicado.",
@@ -185,10 +181,9 @@ export const BLOQUES = [
     metrica: "Fusión con el cargo", // nombre de la barra de este bloque (más alto = más corporativo)
     sellos: { // logro que se desbloquea al terminar el bloque
       bajo: { emoji: "🌱", texto: "Persona con vida propia" }, // si respondes poco corporativo
-      alto: { emoji: "🏢", texto: "Uno con la empresa" }  // si respondes muy corporativo
+      alto: { emoji: "🏢", texto: "Fusión con la empresa" }  // si respondes muy corporativo
     },
     emoji: "🧠",
-    color: "#ef4444",
     preguntas: [
       {
         p: "En una cena te preguntan: '¿Y tú qué eres?'. Respondes:",
@@ -206,7 +201,7 @@ export const BLOQUES = [
         r: [
           { t: "Alguien con un finiquito y muchas opiniones.", v: 2 },
           { t: "La misma persona, con las mañanas libres.", v: 1 },
-          { t: "No lo sé. ¿Hay alguien debajo del lanyard?", v: 4 },
+          { t: "No lo sé. ¿Queda alguien debajo de la acreditación?", v: 4 },
           { t: "Un perfil 'Open to work' con una foto muy sonriente.", v: 3 }
         ]
       },
@@ -226,10 +221,10 @@ export const BLOQUES = [
 
 // Frases que aparecen entre bloque y bloque (una por bloque completado)
 export const MENSAJES_TRANSICION = [
-  "Tu cinismo ya tiene más curvas que el organigrama del CEO. Next.",
-  "RRHH acaba de activar protocolo de contención. Siguiente bloque.",
-  "El algoritmo dice 'este no es de fichar fácil'. Vamos a verificarlo.",
-  "Tu perfil laboral: 80% superviviente, 20% amenaza interna. Confirmamos."
+  "Bienestar evaluado. RRHH ya sabe cuánto vale para ti un plátano.",
+  "Tiempo registrado. Tu hora de salida ha quedado en acta.",
+  "Cultura analizada. La familia corporativa ha tomado nota.",
+  "Valores procesados. El humo ha sido medido con precisión."
 ];
 
 // Reacción del "escáner" a cada respuesta corporativa, según su valor (1 = nada corporativo, 4 = muy corporativo)

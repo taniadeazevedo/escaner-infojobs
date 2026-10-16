@@ -1,10 +1,17 @@
 // ======================
 // PANTALLAS DEL TEST (todas menos la de resultados)
 // ======================
+// Estética de "expediente de RRHH": acreditación en la portada, formulario en las preguntas.
 import React, { useEffect, useState } from 'react';
 import { BLOQUES, MENSAJES_TRANSICION, REACCIONES, REACCIONES_PERFIL } from '../data/bloques.js';
 import { nivelCorporativo, selloDeBloque, PREGUNTAS, TOTAL } from '../lib/puntuacion.js';
-import { Medidor } from './Medidor.jsx';
+import { Medidor, vibrar } from './Medidor.jsx';
+
+// "TIEMPO" -> "Tiempo"
+const capitalizar = (texto) => texto.charAt(0) + texto.slice(1).toLowerCase();
+
+// Número con dos cifras: 6 -> "06"
+const dosCifras = (n) => String(n).padStart(2, '0');
 
 // --- CABECERA: foto × InfoJobs ---
 export const Cabecera = () => (
@@ -15,31 +22,70 @@ export const Cabecera = () => (
   </nav>
 );
 
-// --- PORTADA ---
-export const Hero = ({ alEmpezar }) => (
-  <section className="pantalla pantalla--centrada">
-    <span className="chapa">Test satírico · 3 minutos</span>{/* pastilla de arriba */}
-
-    <div className="radar" aria-hidden="true">{/* aria-hidden: es decoración, los lectores la saltan */}
-      <div className="radar__barrido" />{/* el haz que gira */}
-      <svg width="110" height="110" viewBox="0 0 100 100">{/* el pentágono del centro */}
-        <polygon points="50,10 90,35 75,80 25,80 10,35" fill="rgba(22, 125, 183, 0.2)" stroke="#167db7" strokeWidth="2" />
-      </svg>
+// --- ACREDITACIÓN DE EMPLEADO (dibujo de la portada) ---
+// invita: nombre de quien te reta, si lo hay
+const Acreditacion = ({ invita }) => (
+  <div className="acreditacion" aria-hidden="true">{/* decoración: los lectores de pantalla la saltan */}
+    <svg className="acreditacion__cinta" viewBox="0 0 120 100" preserveAspectRatio="none">{/* la cinta: dos tiras que bajan desde arriba del todo */}
+      <polygon points="0,0 34,0 66,100 48,100" fill="#ff912c" />
+      <polygon points="86,0 120,0 72,100 54,100" fill="#e57f1f" />
+    </svg>
+    <div className="acreditacion__pinza" />{/* la pinza metálica que sujeta la tarjeta */}
+    <div className="acreditacion__tarjeta">
+      <div className="acreditacion__agujero" />{/* el agujero por donde pasa la cinta */}
+      <div className="acreditacion__cabecera">Acreditación · RR. HH.</div>
+      <div className="acreditacion__cuerpo">
+        <svg className="acreditacion__foto" viewBox="0 0 80 96">{/* silueta sin cara: aún no sabemos quién eres */}
+          <rect width="80" height="96" rx="8" fill="#eef3f7" />
+          <circle cx="40" cy="38" r="17" fill="#c5d3df" />
+          <path d="M8 96 C8 70 24 62 40 62 C56 62 72 70 72 96 Z" fill="#c5d3df" />
+        </svg>
+        <dl className="acreditacion__datos">{/* campos de la ficha */}
+          <dt>Nombre</dt><dd>________</dd>
+          <dt>Cargo</dt><dd>Pendiente de escaneo</dd>
+          <dt>{invita ? 'Te reta' : 'Nivel'}</dt><dd>{invita || '??%'}</dd>
+        </dl>
+      </div>
+      <div className="acreditacion__barras" />{/* código de barras */}
+      <div className="escaner-linea" />{/* la línea láser que recorre la tarjeta */}
     </div>
+  </div>
+);
 
-    <h1 className="titulo">Escáner de Compatibilidad</h1>
-    <p className="texto texto--intro">
-      No buscamos tu trabajo soñado. Comprobamos qué sistema laboral es capaz de aguantar tu ADN profesional.
-    </p>
+// --- PORTADA ---
+// reto: { nombre } si te han retado · guardado: { respuestas } si hay un test a medias
+export const Hero = ({ reto, guardado, alEmpezar, alContinuar }) => (
+  <section className="pantalla pantalla--centrada pantalla--portada">{/* portada: pegada arriba para que la tarjeta cuelgue */}
+    <Acreditacion invita={reto ? reto.nombre || 'Alguien' : null} />
 
-    <button className="boton boton--naranja boton--grande" onClick={alEmpezar}>Iniciar Escaneo Táctico</button>
-    <p className="nota">15 preguntas · 5 sellos por desbloquear · 1 diagnóstico brutal</p>
+    <span className="etiqueta">{reto ? 'Te han retado' : 'Test satírico · 3 minutos'}</span>
+    <h1 className="titulo">Escáner de Compatibilidad Laboral</h1>
+    {reto ? (
+      <p className="texto texto--intro">
+        <strong>{reto.nombre || 'Alguien'}</strong> ya ha pasado por el escáner. Su resultado está bajo llave hasta que termines el tuyo.
+      </p>
+    ) : (
+      <p className="texto texto--intro">
+        15 situaciones de oficina para medir cuánto te ha absorbido la empresa. Al final: tu arquetipo, tus sellos y ofertas que encajan contigo.
+      </p>
+    )}
+
+    <button className="boton boton--naranja boton--grande" onClick={alEmpezar}>
+      {reto ? 'Aceptar el reto' : 'Empezar el test'}
+    </button>
+    {guardado && (
+      <button className="boton boton--linea" onClick={alContinuar}>
+        Seguir por la pregunta {guardado.respuestas.length + 1} de {TOTAL}{/* el test a medias */}
+      </button>
+    )}
+    <p className="nota">15 preguntas · 5 sellos (y alguno secreto) · Sin registro</p>
   </section>
 );
 
-// --- PREGUNTA ---
+// --- PREGUNTA (como un formulario) ---
 // respuestas: las ya confirmadas · seleccion: la opción marcada ahora (o null)
-export const Pregunta = ({ respuestas, seleccion, alElegir, alSiguiente }) => {
+// pendiente: true si la opción se acaba de tocar y va a avanzar sola
+export const Pregunta = ({ respuestas, seleccion, pendiente, alElegir, alAtras }) => {
   const indice = respuestas.length; // número de pregunta actual (0 a 14)
   const numBloque = Math.floor(indice / 3); // bloque actual (0 a 4)
   const bloque = BLOQUES[numBloque]; // datos del bloque
@@ -54,35 +100,30 @@ export const Pregunta = ({ respuestas, seleccion, alElegir, alSiguiente }) => {
   if (elegida && pregunta.tipo === 'perfil') reaccion = REACCIONES_PERFIL[elegida.perfil]; // pregunta de perfil
   else if (elegida) reaccion = REACCIONES[elegida.v][indice % 3]; // corporativa: varía la frase según la pregunta
 
-  // Teclado: 1-4 eligen opción, Enter pasa a la siguiente
+  // Teclado: 1-4 eligen opción; flecha izquierda o borrar, atrás
   useEffect(() => {
     const alPulsar = (e) => {
       const numero = Number(e.key); // la tecla como número (NaN si no lo es)
       if (numero >= 1 && numero <= pregunta.r.length) alElegir(numero - 1); // teclas 1 a 4
-      const enBoton = e.target.tagName === 'BUTTON'; // si el foco está en un botón, Enter ya lo pulsa él solo
-      if (e.key === 'Enter' && !enBoton && seleccion !== null) alSiguiente(); // Enter = siguiente
+      if (e.key === 'ArrowLeft' || e.key === 'Backspace') alAtras(); // atrás
     };
     window.addEventListener('keydown', alPulsar); // empieza a escuchar el teclado
     return () => window.removeEventListener('keydown', alPulsar); // deja de escuchar al salir
-  }, [pregunta, seleccion, alElegir, alSiguiente]);
+  }, [pregunta, alElegir, alAtras]);
 
   return (
-    <section className="pantalla" key={indice}>{/* key: al cambiar de pregunta se repite la animación de entrada */}
-      <div className="progreso">
-        <span className="etiqueta" style={{ color: bloque.color }}>
-          {bloque.emoji} Bloque {numBloque + 1}/5 · {bloque.nombre}
-        </span>
-        <span className="etiqueta">{indice + 1}/{TOTAL}</span>{/* pregunta 4/15 */}
-      </div>
-      <div className="pasos" aria-hidden="true">{/* 15 rayitas, una por pregunta */}
-        {PREGUNTAS.map((_, i) => (
-          <span key={i} className={`paso ${i < indice ? 'paso--hecho' : ''} ${i === indice ? 'paso--actual' : ''}`} />
-        ))}
+    <section className="pantalla pantalla--pregunta" key={indice}>{/* key: cada pregunta nueva entra deslizando */}
+      <div className="formulario-cabecera">{/* una sola línea de progreso */}
+        <span className="etiqueta">Bloque {numBloque + 1} de 5 · {capitalizar(bloque.nombre)}</span>
+        <span className="etiqueta">{dosCifras(indice + 1)}/{TOTAL}</span>
       </div>
 
       <Medidor nivel={nivel} />
 
-      <h2 className="pregunta">{pregunta.p}</h2>
+      <div>
+        <span className="pregunta__num">P.{dosCifras(indice + 1)}</span>{/* número de pregunta, como en un impreso */}
+        <h2 className="pregunta">{pregunta.p}</h2>
+      </div>
 
       <div className="opciones" role="radiogroup" aria-label="Respuestas">{/* se comporta como un grupo de radios */}
         {pregunta.r.map((opcion, i) => (
@@ -90,10 +131,10 @@ export const Pregunta = ({ respuestas, seleccion, alElegir, alSiguiente }) => {
             key={i}
             role="radio" // cada opción es un "radio"
             aria-checked={seleccion === i} // marcada o no, para lectores de pantalla
-            className={`opcion ${seleccion === i ? 'opcion--marcada' : ''}`}
-            onClick={() => alElegir(i)} // al tocar, la marca
+            className={`opcion ${seleccion === i ? 'opcion--marcada' : ''} ${seleccion === i && pendiente ? 'opcion--avanzando' : ''}`}
+            onClick={() => alElegir(i)} // al tocar, la marca y avanza sola
           >
-            <span className="opcion__tecla">{i + 1}</span>{/* número de la tecla */}
+            <span className="opcion__casilla">{seleccion === i ? '✕' : i + 1}</span>{/* casilla: número, o ✕ si está marcada */}
             <span>{opcion.t}</span>{/* texto de la respuesta */}
           </button>
         ))}
@@ -101,9 +142,10 @@ export const Pregunta = ({ respuestas, seleccion, alElegir, alSiguiente }) => {
 
       <p className="reaccion" aria-live="polite">{reaccion && `› ${reaccion}`}</p>{/* frase del escáner */}
 
-      <button className="boton boton--azul boton--abajo" onClick={alSiguiente} disabled={seleccion === null}>
-        {indice === TOTAL - 1 ? 'Ver mi diagnóstico →' : 'Siguiente →'}{/* en la última cambia el texto */}
-      </button>
+      <div className="navegacion">{/* abajo: atrás a la izquierda, pista a la derecha */}
+        <button className="enlace" onClick={alAtras} disabled={indice === 0}>← Atrás</button>
+        <span className="nota">{pendiente ? 'Siguiente…' : seleccion !== null ? 'Toca una respuesta para seguir' : 'Marca una respuesta'}</span>
+      </div>
     </section>
   );
 };
@@ -112,12 +154,13 @@ export const Pregunta = ({ respuestas, seleccion, alElegir, alSiguiente }) => {
 export const Transicion = ({ respuestas, alContinuar }) => {
   const hecho = respuestas.length / 3 - 1; // bloque que se acaba de terminar (0 a 3)
   const sello = selloDeBloque(respuestas, hecho); // el logro ganado
+  useEffect(() => vibrar(40), []); // un toque de vibración al ganar el sello (solo en móviles que lo permiten)
 
   return (
     <section className="pantalla pantalla--centrada">
-      <span className="etiqueta" style={{ color: BLOQUES[hecho].color }}>Bloque {hecho + 1} completado</span>
+      <span className="etiqueta">Bloque {hecho + 1} de 5 completado</span>
 
-      <div className="sello sello--grande">{/* el logro, con animación de aparecer */}
+      <div className="sello sello--grande">{/* el logro, cae como un tampón */}
         <span className="sello__emoji">{sello.emoji}</span>
         <span className="etiqueta">Sello desbloqueado</span>
         <strong className="sello__texto">{sello.texto}</strong>
@@ -134,7 +177,7 @@ export const Transicion = ({ respuestas, alContinuar }) => {
       </div>
 
       <button className="boton boton--naranja boton--abajo" onClick={alContinuar} autoFocus>
-        Bloque {hecho + 2}: {BLOQUES[hecho + 1].nombre} →
+        Siguiente bloque: {capitalizar(BLOQUES[hecho + 1].nombre)} →
       </button>
     </section>
   );
@@ -142,11 +185,11 @@ export const Transicion = ({ respuestas, alContinuar }) => {
 
 // --- PANTALLA DE "ANALIZANDO" (suspense antes del resultado) ---
 const TEXTOS_ANALISIS = [
-  "Escaneando cinismo operativo...",
-  "Calculando tolerancia al corporate bullshit...",
-  "Analizando ADN laboral...",
+  "Midiendo tu nivel de cinismo...",
+  "Calculando tu tolerancia al humo corporativo...",
+  "Comparando con los 6 arquetipos laborales...",
   "Cruzando datos con vacantes de InfoJobs...",
-  "Generando arquetipo definitivo..."
+  "Redactando tu informe..."
 ];
 
 export const Analizando = ({ alTerminar }) => {
@@ -163,9 +206,26 @@ export const Analizando = ({ alTerminar }) => {
 
   return (
     <section className="analizando" role="status">{/* role=status: se anuncia como estado de carga */}
-      <div className="radar radar--rapido" aria-hidden="true"><div className="radar__barrido" /></div>
+      <div className="documento-mini" aria-hidden="true">{/* una hoja con líneas que se escanea */}
+        <span /><span /><span /><span /><span />
+        <div className="escaner-linea" />
+      </div>
+      <span className="etiqueta">Procesando expediente</span>
       <h3 className="analizando__texto">{TEXTOS_ANALISIS[paso]}</h3>
-      <p className="nota">{paso + 1} de {TEXTOS_ANALISIS.length}</p>
+      <div className="analizando__barra">{/* barra de avance */}
+        <div style={{ width: `${((paso + 1) / TEXTOS_ANALISIS.length) * 100}%` }} />
+      </div>
     </section>
   );
 };
+
+// --- AVISO DE ASCENSO O BAJADA (aparece arriba un momento) ---
+export const Aviso = ({ sube, texto }) => (
+  <div className={`aviso ${sube ? 'aviso--sube' : 'aviso--baja'}`} role="status">{/* role=status: se anuncia sin interrumpir */}
+    <span className="aviso__flecha">{sube ? '⬆' : '⬇'}</span>
+    <span>
+      <span className="aviso__tipo">{sube ? 'Asciendes a' : 'Bajas a'}</span>{/* línea pequeña */}
+      <strong>{texto}</strong>{/* el arquetipo nuevo */}
+    </span>
+  </div>
+);

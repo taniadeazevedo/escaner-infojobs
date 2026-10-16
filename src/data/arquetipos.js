@@ -35,7 +35,7 @@ export const ARQUETIPOS = {
       "Humor negro como equipo de protección individual",
       "Se queja con datos y entrega con puntualidad"
     ],
-    estado: "DESESTABILIZADOR CONTROLADO",
+    estado: "DESESTABILIZACIÓN CONTROLADA",
     roles_creativo: "Copywriter, Community Manager",
     roles_analitico: "Tester QA, Analista de datos",
     nota: "Puestos donde encontrar fallos es el trabajo y no un problema de actitud."
@@ -86,7 +86,7 @@ export const ARQUETIPOS = {
       "Ha dicho 'ponerse la camiseta' en serio",
       "Considera el viernes un día como otro cualquiera"
     ],
-    estado: "INTEGRADO EN EL SISTEMA // SIN INCIDENCIAS",
+    estado: "INTEGRACIÓN EN EL SISTEMA // SIN INCIDENCIAS",
     roles_creativo: "Marketing Manager, Employer Branding",
     roles_analitico: "Controller, Operaciones",
     nota: "No buscas trabajo: el trabajo te encuentra. Normalmente en fin de semana."

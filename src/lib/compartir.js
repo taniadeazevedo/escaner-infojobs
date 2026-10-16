@@ -1,7 +1,7 @@
 // ======================
 // COMPARTIR EL RESULTADO
 // ======================
-// 1) Un enlace que guarda las 15 respuestas (?r=012301230123012)
+// 1) Enlaces que guardan las 15 respuestas: resultado (?r=0123...) y reto (?reto=0123...)
 // 2) Una tarjeta-imagen del resultado dibujada con <canvas>
 
 import { TOTAL } from './puntuacion.js'; // 15
@@ -14,25 +14,48 @@ const ENLACE_CORTO = 'bit.ly/Escaner_Infojobs'; // enlace que se imprime en la t
 
 // --- ENLACE ---
 
-// Crea el enlace del resultado: la web + ?r= + las respuestas pegadas ("0123...")
-export const crearEnlace = (respuestas) =>
-  `${window.location.origin}${window.location.pathname}?r=${respuestas.join('')}`;
+const base = () => `${window.location.origin}${window.location.pathname}`; // la web sin nada detrás
 
-// Lee las respuestas del enlace actual. Devuelve null si no hay o no son válidas.
+// Enlace del resultado: ?r= + las respuestas pegadas ("0123...") y, si hay, &x= + secretos de cómo jugaste
+export const crearEnlace = (respuestas, extras = []) =>
+  `${base()}?r=${respuestas.join('')}${extras.length ? `&x=${extras.join('.')}` : ''}`;
+
+// Enlace de reto: ?reto= + tus respuestas y, si lo pones, &de= + tu nombre
+export const crearReto = (respuestas, nombre) =>
+  `${base()}?reto=${respuestas.join('')}${nombre ? `&de=${encodeURIComponent(nombre)}` : ''}`;
+
+// Lee el enlace actual. Devuelve { modo: 'resultado' | 'reto', ... } o null si no hay nada válido.
 export const leerEnlace = () => {
-  const codigo = new URLSearchParams(window.location.search).get('r'); // lo que va detrás de ?r=
-  const valido = new RegExp(`^[0-3]{${TOTAL}}$`).test(codigo || ''); // exactamente 15 cifras del 0 al 3
-  return valido ? codigo.split('').map(Number) : null; // "012" -> [0, 1, 2]
+  const datos = new URLSearchParams(window.location.search); // lo que va detrás del "?"
+  const valido = (codigo) => new RegExp(`^[0-3]{${TOTAL}}$`).test(codigo || ''); // exactamente 15 cifras del 0 al 3
+  const aLista = (codigo) => codigo.split('').map(Number); // "012" -> [0, 1, 2]
+  if (valido(datos.get('r'))) {
+    return { modo: 'resultado', respuestas: aLista(datos.get('r')), extras: (datos.get('x') || '').split('.').filter(Boolean) };
+  }
+  if (valido(datos.get('reto'))) {
+    return { modo: 'reto', respuestas: aLista(datos.get('reto')), nombre: (datos.get('de') || '').trim().slice(0, 20) }; // nombre de 20 letras como mucho
+  }
+  return null; // dirección normal, sin resultado ni reto
 };
 
-// Quita el ?r= de la barra de direcciones sin recargar la página
+// Número de expediente: sale de las respuestas, así el mismo resultado tiene siempre el mismo número
+export const numeroExpediente = (respuestas) => {
+  let numero = 7; // semilla
+  respuestas.forEach((opcion) => { numero = (numero * 31 + opcion + 1) % 99991; }); // mezcla cada respuesta
+  return String(numero).padStart(5, '0'); // siempre 5 cifras: 04721
+};
+
+// Fecha de hoy en formato español: 16/10/2026
+export const fechaHoy = () => new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+// Quita el ?r= / ?reto= de la barra de direcciones sin recargar la página
 export const limpiarEnlace = () => window.history.replaceState(null, '', window.location.pathname);
 
 // Enlace para abrir el diálogo de publicar en LinkedIn
 export const enlaceLinkedIn = (url) =>
   `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
 
-// --- TARJETA (imagen de 1080 x 1350, mismo estilo que la pantalla de resultados) ---
+// --- TARJETA (imagen de 1080 x 1350): una acreditación de empleado con tu arquetipo como cargo ---
 
 // Parte un texto en líneas que quepan en "anchoMax". Devuelve la lista de líneas.
 const partirEnLineas = (ctx, texto, anchoMax) => {
@@ -44,6 +67,14 @@ const partirEnLineas = (ctx, texto, anchoMax) => {
     else lineas[lineas.length - 1] = prueba; // cabe: seguimos en la misma
   });
   return lineas;
+};
+
+// Dibuja un rectángulo con esquinas redondeadas, solo relleno
+const pastillaRect = (ctx, x, y, ancho, alto, radio, relleno) => {
+  ctx.beginPath(); // empieza una forma
+  ctx.roundRect(x, y, ancho, alto, radio); // rectángulo con esquinas de "radio" px
+  ctx.fillStyle = relleno; // color de dentro
+  ctx.fill(); // lo rellena
 };
 
 // Dibuja una "pastilla" (rectángulo muy redondeado), con relleno y, si se pide, borde punteado
@@ -61,111 +92,185 @@ const pastilla = (ctx, x, y, ancho, alto, relleno, borde) => {
   }
 };
 
-// Dibuja la tarjeta y devuelve la imagen como texto (data URL en PNG)
-export const generarTarjeta = async (resultado) => {
-  await document.fonts.ready; // espera a que la fuente Inter esté cargada
+// Dibuja la acreditación y devuelve la imagen como texto (data URL en PNG)
+export const generarTarjeta = async (resultado, expediente) => {
+  await Promise.all([ // espera a que estén cargadas las dos fuentes que usa el dibujo
+    document.fonts.load('800 40px Inter'),
+    document.fonts.load('600 24px "IBM Plex Mono"')
+  ]);
 
   const ANCHO = 1080; // ancho en píxeles
   const ALTO = 1350; // alto en píxeles (formato 4:5, el que mejor se ve en LinkedIn e Instagram)
-  const CENTRO = ANCHO / 2; // todo va centrado, como en la pantalla
+  const CENTRO = ANCHO / 2; // centro horizontal
   const lienzo = document.createElement('canvas'); // lienzo invisible
   lienzo.width = ANCHO; // le damos tamaño
   lienzo.height = ALTO;
   const ctx = lienzo.getContext('2d'); // el "pincel"
-  const fuente = (peso, tam) => `${peso} ${tam}px Inter, system-ui, sans-serif`; // atajo para elegir fuente
-  const { arquetipo, posicion, porcentaje, sellos } = resultado; // los datos que se pintan
+  const inter = (peso, tam) => `${peso} ${tam}px Inter, system-ui, sans-serif`; // letra normal
+  const mono = (peso, tam) => `${peso} ${tam}px "IBM Plex Mono", ui-monospace, monospace`; // letra de máquina
+  const { arquetipo, posicion, porcentaje, sellos, secretos } = resultado; // los datos que se pintan
 
-  // Fondo
-  const fondo = ctx.createLinearGradient(0, 0, ANCHO, ALTO); // degradado en diagonal
-  fondo.addColorStop(0, '#ffffff'); // blanco arriba
-  fondo.addColorStop(1, '#dbe7f1'); // azul grisáceo abajo
-  ctx.fillStyle = fondo;
-  ctx.fillRect(0, 0, ANCHO, ALTO); // pinta todo el lienzo
+  // Medidas de la acreditación
+  const T = { x: 150, y: 165, ancho: 780, alto: 1030 }; // la tarjeta blanca
+  const IZQ = T.x + 50; // margen izquierdo dentro de la tarjeta
+  const DER = T.x + T.ancho - 50; // margen derecho dentro de la tarjeta
+
+  // Fondo: gris azulado, como una mesa de oficina
+  ctx.fillStyle = '#e9eef3';
+  ctx.fillRect(0, 0, ANCHO, ALTO);
+
+  // Cinta del cuello (dos tiras naranjas que bajan hacia la tarjeta)
+  ctx.strokeStyle = NARANJA;
+  ctx.lineWidth = 46; // grosor de la cinta
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(380, -20); ctx.lineTo(515, 175); // tira izquierda
+  ctx.moveTo(700, -20); ctx.lineTo(565, 175); // tira derecha
+  ctx.stroke();
+
+  // Tarjeta blanca con sombra
+  ctx.save(); // guarda el estado para que la sombra solo afecte a la tarjeta
+  ctx.shadowColor = 'rgba(16, 40, 60, 0.18)';
+  ctx.shadowBlur = 50;
+  ctx.shadowOffsetY = 20;
+  pastillaRect(ctx, T.x, T.y, T.ancho, T.alto, 36, '#ffffff');
+  ctx.restore(); // quita la sombra
+
+  // Pinza metálica y agujero
+  pastillaRect(ctx, 495, 150, 90, 46, 10, '#9aa8b5'); // la pinza
+  pastillaRect(ctx, 500, 205, 80, 16, 8, '#e9eef3'); // el agujero de la tarjeta
+
+  // Franja azul de cabecera
   ctx.fillStyle = AZUL;
-  ctx.fillRect(0, 0, ANCHO, 16); // franja azul de arriba
+  ctx.fillRect(T.x, 240, T.ancho, 110);
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = '#ffffff';
+  ctx.font = mono(700, 26);
+  ctx.fillText('ACREDITACIÓN · DPTO. DE RR. HH.', IZQ, 287);
+  ctx.font = inter(600, 24);
+  ctx.fillText('Escáner de Compatibilidad Laboral', IZQ, 325);
 
-  ctx.textAlign = 'center'; // los textos se centran en la "x" que les demos
-  ctx.textBaseline = 'alphabetic'; // la "y" marca la base de las letras
+  // Foto: silueta sin cara
+  const F = { x: IZQ, y: 390, ancho: 210, alto: 255 }; // el hueco de la foto
+  pastillaRect(ctx, F.x, F.y, F.ancho, F.alto, 16, '#eef3f7');
+  ctx.save();
+  ctx.beginPath();
+  ctx.roundRect(F.x, F.y, F.ancho, F.alto, 16);
+  ctx.clip(); // lo que se pinte ahora no se sale del hueco
+  ctx.fillStyle = '#c5d3df';
+  ctx.beginPath(); ctx.arc(F.x + F.ancho / 2, F.y + 100, 50, 0, Math.PI * 2); ctx.fill(); // cabeza
+  ctx.beginPath(); ctx.ellipse(F.x + F.ancho / 2, F.y + F.alto + 20, 95, 90, 0, Math.PI, 0); ctx.fill(); // hombros
+  ctx.restore();
 
-  // Etiqueta de arriba
-  ctx.fillStyle = '#b85c00'; // naranja oscuro
-  ctx.font = fuente(700, 28);
-  ctx.fillText('RESULTADO DEL ESCÁNER', CENTRO, 130);
-
-  // Arquetipo (1 o 2 líneas)
-  let y = 160; // la "y" va bajando según pintamos
-  ctx.fillStyle = TEXTO;
-  ctx.font = fuente(800, 80);
-  partirEnLineas(ctx, arquetipo.titulo, 920).forEach((linea) => {
-    y += 88; // baja una línea
-    ctx.fillText(linea, CENTRO, y);
-  });
+  // Datos a la derecha de la foto
+  const X = F.x + F.ancho + 40; // donde empiezan los datos
+  const anchoDatos = DER - X; // espacio disponible
+  let y = 412; // la "y" va bajando según pintamos
   ctx.fillStyle = GRIS;
-  ctx.font = fuente(500, 36);
-  y += 62; // baja para el subtítulo
-  ctx.fillText(arquetipo.subtitulo, CENTRO, y);
-
-  // Porcentaje grande
+  ctx.font = mono(600, 22);
+  ctx.fillText('CARGO', X, y);
+  ctx.fillStyle = TEXTO;
+  ctx.font = inter(800, 44);
+  partirEnLineas(ctx, arquetipo.titulo, anchoDatos).forEach((linea) => {
+    y += 50; // baja una línea
+    ctx.fillText(linea, X, y);
+  });
+  y += 56;
+  ctx.fillStyle = GRIS;
+  ctx.font = mono(600, 22);
+  ctx.fillText('NIVEL CORPORATIVO', X, y);
+  y += 86;
   ctx.fillStyle = AZUL;
-  ctx.font = fuente(800, 200);
-  y += 210;
-  ctx.fillText(`${porcentaje}%`, CENTRO, y);
+  ctx.font = mono(700, 88);
+  ctx.fillText(`${porcentaje}%`, X - 4, y);
 
-  // Escala de 6 tramos, rellenos hasta tu nivel
-  const TRAMO = 86; // ancho de cada tramo
-  const HUECO = 10; // separación entre tramos
-  const inicio = CENTRO - (TRAMO * 6 + HUECO * 5) / 2; // "x" del primer tramo para que queden centrados
-  y += 44;
+  // Sello "CONFIDENCIAL" torcido encima de la foto
+  ctx.save();
+  ctx.translate(F.x + F.ancho / 2, F.y + F.alto - 40); // nos colocamos en la parte baja de la foto
+  ctx.rotate(-0.22); // lo torcemos (unos -12 grados)
+  ctx.font = mono(700, 28);
+  const anchoSello = ctx.measureText('CONFIDENCIAL').width + 36; // ancho del texto + margen
+  ctx.strokeStyle = '#b4232c'; // rojo tinta
+  ctx.lineWidth = 4;
+  ctx.strokeRect(-anchoSello / 2, -26, anchoSello, 52); // marco exterior
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(-anchoSello / 2 + 6, -20, anchoSello - 12, 40); // marco interior (doble línea)
+  ctx.fillStyle = '#b4232c';
+  ctx.textAlign = 'center';
+  ctx.fillText('CONFIDENCIAL', 0, 10);
+  ctx.restore();
+
+  // Escala de 6 tramos, de lado a lado
+  y = Math.max(y, F.y + F.alto) + 60; // debajo de lo que sea más alto: foto o datos
+  const TRAMO = (DER - IZQ - 5 * 10) / 6; // ancho de cada tramo
   for (let n = 0; n < 6; n++) {
     const color = n <= posicion ? AZUL : 'rgba(22, 125, 183, 0.18)'; // lleno o vacío
-    pastilla(ctx, inicio + n * (TRAMO + HUECO), y, TRAMO, 16, color);
+    pastillaRect(ctx, IZQ + n * (TRAMO + 10), y, TRAMO, 14, 3, color);
   }
+  ctx.textAlign = 'left';
   ctx.fillStyle = GRIS;
-  ctx.font = fuente(500, 30);
-  y += 66;
-  ctx.fillText(`Nivel corporativo ${posicion + 1} de 6 · ${arquetipo.nivelLabel}`, CENTRO, y);
-
-  // Chapa con el estado
-  ctx.font = fuente(700, 24);
-  const anchoChapa = ctx.measureText(arquetipo.estado).width + 56; // el texto + relleno a los lados
-  y += 36;
-  pastilla(ctx, CENTRO - anchoChapa / 2, y, anchoChapa, 52, 'rgba(22, 125, 183, 0.08)');
+  ctx.font = inter(500, 26);
+  y += 54;
+  ctx.fillText(`Nivel ${posicion + 1} de 6 · ${arquetipo.nivelLabel}`, IZQ, y);
   ctx.fillStyle = AZUL;
-  ctx.fillText(arquetipo.estado, CENTRO, y + 35);
+  ctx.font = mono(700, 22);
+  y += 40;
+  ctx.fillText(arquetipo.estado, IZQ, y);
 
-  // Sellos: pastillas con borde punteado, colocadas en filas centradas
-  ctx.font = fuente(600, 26);
-  const chips = sellos.map((sello) => {
-    const texto = `${sello.emoji}  ${sello.texto}`; // emoji + nombre del sello
-    return { texto, ancho: ctx.measureText(texto).width + 52 }; // ancho del texto + relleno
-  });
-  const filas = [[]]; // repartimos los sellos en filas que no pasen de 960 px
-  chips.forEach((chip) => {
-    const fila = filas[filas.length - 1]; // la fila que estamos rellenando
-    const ocupado = fila.reduce((suma, c) => suma + c.ancho + 16, 0); // lo que ya ocupa esa fila
-    if (ocupado + chip.ancho > 960 && fila.length) filas.push([chip]); // no cabe: fila nueva
-    else fila.push(chip); // cabe
-  });
-  y += 110; // separación antes de los sellos
-  filas.forEach((fila) => {
-    const anchoFila = fila.reduce((suma, c) => suma + c.ancho, 0) + 16 * (fila.length - 1); // ancho total de la fila
-    let x = CENTRO - anchoFila / 2; // "x" donde empieza para quedar centrada
-    fila.forEach((chip) => {
-      pastilla(ctx, x, y, chip.ancho, 56, '#ffffff', NARANJA); // fondo blanco, borde naranja punteado
-      ctx.fillStyle = TEXTO;
-      ctx.fillText(chip.texto, x + chip.ancho / 2, y + 37); // texto centrado dentro
-      x += chip.ancho + 16; // siguiente sello de la fila
-    });
-    y += 70; // siguiente fila
-  });
-
-  // Pie
-  ctx.fillStyle = TEXTO;
-  ctx.font = fuente(700, 34);
-  ctx.fillText(`Haz el test aquí: ${ENLACE_CORTO}`, CENTRO, ALTO - 100);
+  // Sellos: una fila de insignias redondas, solo con el emoji (naranja = normal, rojo = secreto)
+  const insignias = [...sellos, ...secretos.slice(0, 1)]; // los 5 sellos + el primer secreto, si hay
+  const D = 90; // diámetro de cada insignia
+  const HUECO_I = 18; // separación entre insignias
+  y += 64;
+  ctx.textAlign = 'left';
   ctx.fillStyle = GRIS;
-  ctx.font = fuente(500, 26);
-  ctx.fillText('Un proyecto de Tania de Azevedo', CENTRO, ALTO - 52);
+  ctx.font = mono(600, 20);
+  ctx.fillText(`SELLOS · ${sellos.length}${secretos.length ? ` + ${secretos.length} SECRETO${secretos.length > 1 ? 'S' : ''}` : ''}`, IZQ, y);
+  y += 24;
+  insignias.forEach((sello, n) => {
+    const cx = IZQ + D / 2 + n * (D + HUECO_I); // centro de la insignia
+    const cy = y + D / 2;
+    const secreto = n >= sellos.length; // las que van después de los 5 normales son secretas
+    ctx.beginPath();
+    ctx.arc(cx, cy, D / 2 - 2, 0, Math.PI * 2); // círculo
+    ctx.fillStyle = secreto ? '#fdf3f3' : '#ffffff';
+    ctx.fill();
+    ctx.setLineDash(secreto ? [] : [7, 5]); // normal: punteado · secreto: continuo
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = secreto ? '#b4232c' : NARANJA;
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.font = inter(400, 44);
+    ctx.textAlign = 'center';
+    ctx.fillText(sello.emoji, cx, cy + 15); // el emoji en el centro
+  });
+
+  // Código de barras y número de expediente, abajo de la tarjeta
+  const yBarras = T.y + T.alto - 100; // a 100 px del borde de abajo
+  let xb = IZQ; // donde va la siguiente raya
+  ctx.fillStyle = TEXTO;
+  `${expediente}${porcentaje}${posicion}7319`.repeat(3).split('').forEach((cifra) => { // el dibujo depende del expediente (repetido para que sea largo)
+    const grosor = 2 + (Number(cifra) % 3) * 2; // rayas de 2, 4 o 6 px
+    ctx.fillRect(xb, yBarras, grosor, 56);
+    xb += grosor + 4 + (Number(cifra) % 2) * 3; // hueco entre rayas
+  });
+  ctx.textAlign = 'right';
+  ctx.fillStyle = TEXTO;
+  ctx.font = mono(700, 24);
+  ctx.fillText(`EXP. Nº ${expediente}`, DER, yBarras + 24);
+  ctx.fillStyle = GRIS;
+  ctx.font = mono(600, 20);
+  ctx.fillText(fechaHoy(), DER, yBarras + 54);
+
+  // Pie, fuera de la tarjeta
+  ctx.textAlign = 'center';
+  ctx.fillStyle = TEXTO;
+  ctx.font = inter(700, 34);
+  ctx.fillText(`Haz el test aquí: ${ENLACE_CORTO}`, CENTRO, ALTO - 68);
+  ctx.fillStyle = GRIS;
+  ctx.font = inter(500, 24);
+  ctx.fillText('Un proyecto de Tania de Azevedo', CENTRO, ALTO - 28);
 
   return lienzo.toDataURL('image/png'); // la imagen lista para mostrar o descargar
 };

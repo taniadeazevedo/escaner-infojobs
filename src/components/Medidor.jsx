@@ -3,6 +3,15 @@
 // ======================
 import React, { useEffect, useState } from 'react';
 
+// Hace vibrar el móvil (si el navegador lo permite; en iPhone no hace nada)
+export const vibrar = (patron) => {
+  try {
+    navigator.vibrate?.(patron); // ?. : solo si existe la función
+  } catch {
+    // sin vibración: no pasa nada
+  }
+};
+
 // ¿La persona ha pedido menos animaciones en su sistema? (accesibilidad)
 const sinAnimaciones = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 

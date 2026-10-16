@@ -1,15 +1,18 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap'); /* fuente Inter */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap'); /* Inter para leer, IBM Plex Mono para los "datos de formulario" */
 
 /* ===== COLORES Y MEDIDAS (se cambian aquí y cambian en toda la app) ===== */
+/* Paleta reducida a propósito: azul = sistema y datos · naranja = acciones y logros · rojo tinta = sellos oficiales y secretos */
 :root {
-  --azul: #167db7;                      /* color principal (InfoJobs) */
-  --naranja: #ff912c;                   /* color de acento */
-  --naranja-texto: #b85c00;             /* naranja oscuro: el claro no se lee sobre blanco */
-  --texto: #1a1a1a;                     /* texto normal */
-  --gris: #5a6b7a;                      /* texto secundario */
+  --azul: #167db7;                        /* color principal (InfoJobs) */
+  --naranja: #ff912c;                     /* acciones y sellos normales */
+  --tinta: #b4232c;                       /* rojo de tampón: "Confidencial" y sellos secretos */
+  --texto: #1a1a1a;                       /* texto normal */
+  --gris: #5a6b7a;                        /* texto secundario */
+  --papel: #fffdf8;                       /* blanco roto de documento */
   --azul-suave: rgba(22, 125, 183, 0.06); /* fondo de cajas */
   --azul-linea: rgba(22, 125, 183, 0.18); /* bordes */
-  --radio: 16px;                        /* redondeo de cajas */
+  --radio: 14px;                          /* redondeo de cajas */
+  --mono: 'IBM Plex Mono', ui-monospace, monospace; /* letra de máquina de escribir */
 }
 
 /* ===== BASE ===== */
@@ -18,43 +21,44 @@
 body {
   font-family: 'Inter', system-ui, sans-serif;
   color: var(--texto);
-  background: radial-gradient(circle at top right, #ffffff 0%, #e2e8f0 100%); /* fondo claro en degradado */
-  background-attachment: fixed;        /* el fondo no se mueve al hacer scroll */
-  -webkit-font-smoothing: antialiased; /* letras más finas en Mac */
+  background: #e9eef3;                    /* gris azulado, como una mesa de oficina */
+  -webkit-font-smoothing: antialiased;    /* letras más finas en Mac */
 }
 
-button { font: inherit; }              /* los botones usan la misma fuente que el resto */
+button { font: inherit; }                 /* los botones usan la misma fuente que el resto */
 :focus-visible { outline: 3px solid var(--azul); outline-offset: 3px; } /* borde visible al navegar con teclado */
 
 /* ===== ESTRUCTURA ===== */
 .app { min-height: 100dvh; display: flex; flex-direction: column; } /* cabecera arriba, marco debajo */
 
-.marco {                               /* en móvil: sin tarjeta, a todo el ancho */
+.marco {                                  /* en móvil: sin tarjeta, a todo el ancho */
   max-width: 650px;
-  margin: 0 auto;
   width: 100%;
-  flex: 1;                             /* ocupa el alto que deja la cabecera */
+  margin: 0 auto;
+  flex: 1;                                /* ocupa el alto que deja la cabecera */
   display: flex;
   flex-direction: column;
 }
 
-.pantalla {                            /* cada pantalla del test */
-  flex: 1;                             /* ocupa el alto que queda */
+.pantalla {                               /* cada pantalla del test */
+  flex: 1;                                /* ocupa el alto que queda */
   display: flex;
   flex-direction: column;
-  gap: 18px;                           /* separación entre sus elementos */
+  gap: 18px;                              /* separación entre sus elementos */
   padding: 26px 20px 28px;
-  animation: entrar 0.45s ease-out;    /* aparece subiendo un poco */
+  animation: entrar 0.45s ease-out;       /* aparece subiendo un poco */
+  overflow-x: clip;                       /* lo que se sale al animar no crea scroll lateral */
 }
 .pantalla--centrada { align-items: center; text-align: center; justify-content: center; }
+.pantalla--pregunta { animation-name: deslizar; } /* las preguntas entran desde la derecha */
 
 /* ===== CABECERA ===== */
 .cabecera {
-  position: sticky; top: 0; z-index: 10;     /* se queda pegada arriba */
+  position: sticky; top: 0; z-index: 10;  /* se queda pegada arriba */
   display: flex; justify-content: center; align-items: center; gap: 12px;
   padding: 14px 20px;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(15px);               /* efecto cristal */
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(15px);            /* efecto cristal */
   border-bottom: 1px solid var(--azul-linea);
 }
 .cabecera__foto { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid var(--azul-linea); }
@@ -64,29 +68,26 @@ button { font: inherit; }              /* los botones usan la misma fuente que e
 /* ===== TEXTOS ===== */
 .titulo { font-size: 30px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.1; }
 .titulo--pequeno { font-size: 19px; font-weight: 700; }
-.titulo--revelado { animation: revelar 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.2); } /* el arquetipo entra con rebote */
-.texto { color: var(--gris); font-size: 15px; line-height: 1.6; max-width: 400px; }
+.titulo--revelado { animation: tampon 0.75s cubic-bezier(0.2, 0.9, 0.3, 1.2) 0.15s backwards; } /* el arquetipo cae como un tampón */
+.texto { color: var(--gris); font-size: 15px; line-height: 1.6; max-width: 420px; }
 .texto--intro { font-size: 16px; }
 .nota { color: var(--gris); font-size: 13px; line-height: 1.5; }
 .nota--cursiva { font-style: italic; }
-.etiqueta {                            /* texto pequeño en mayúsculas */
-  color: var(--gris); font-size: 11px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 1.5px;
+.nota--centrada { text-align: center; }
+.etiqueta {                               /* etiqueta de formulario: letra de máquina, pequeña */
+  font-family: var(--mono);
+  color: var(--gris); font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.5px;
 }
-.etiqueta--naranja { color: var(--naranja-texto); }
-.chapa {                               /* pastilla de la portada */
-  background: var(--azul-suave); color: var(--azul);
-  padding: 6px 14px; border-radius: 20px;
-  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
-}
+.seccion { font-size: 16px; font-weight: 700; text-align: center; } /* títulos de sección: normales, sin gritar */
 
-/* ===== BOTONES ===== */
+/* ===== BOTONES (una sola forma: pastilla, sin mayúsculas) ===== */
 .boton {
   display: inline-flex; align-items: center; justify-content: center;
-  align-self: center;                  /* centrado y solo tan ancho como su texto */
-  padding: 15px 34px;
+  align-self: center;                     /* centrado y solo tan ancho como su texto */
+  padding: 14px 30px;
   border: 2px solid transparent; border-radius: 50px;
-  font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;
+  font-size: 15px; font-weight: 700;
   text-decoration: none; cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
 }
@@ -95,133 +96,234 @@ button { font: inherit; }              /* los botones usan la misma fuente que e
 .boton--naranja { background: var(--naranja); color: var(--texto); box-shadow: 0 10px 20px rgba(255, 145, 44, 0.25); }
 .boton--azul { background: var(--azul); color: #fff; box-shadow: 0 8px 18px rgba(22, 125, 183, 0.22); }
 .boton--linea { background: #fff; color: var(--azul); border-color: var(--azul-linea); } /* botón secundario */
-.boton--grande { padding: 19px 44px; border-radius: 16px; }
-.boton--abajo { margin-top: auto; }    /* se va al fondo de la pantalla */
-.enlace { background: none; border: none; color: var(--gris); font-size: 13px; text-decoration: underline; cursor: pointer; padding: 10px; }
+.boton--grande { padding: 17px 44px; font-size: 16px; }
+.boton--abajo { margin-top: auto; }       /* se va al fondo de la pantalla */
+.enlace { background: none; border: none; color: var(--gris); font-size: 14px; text-decoration: underline; cursor: pointer; padding: 10px 4px; }
+.enlace:disabled { opacity: 0.3; cursor: default; }
 
-/* ===== RADAR (portada y pantalla de análisis) ===== */
-.radar {
-  position: relative; width: 170px; height: 170px;
-  display: grid; place-items: center;  /* centra el pentágono */
-  border: 1px dashed var(--azul); border-radius: 50%;
-  overflow: hidden;                    /* recorta el haz al círculo */
+/* ===== ACREDITACIÓN (portada) ===== */
+.acreditacion { position: relative; display: flex; flex-direction: column; align-items: center; margin-bottom: 4px; }
+.pantalla--portada { justify-content: flex-start; padding-top: 0; } /* sin hueco arriba: la cinta sale del borde */
+.acreditacion__cinta { display: block; width: 120px; height: 90px; } /* las dos tiras de la cinta */
+.acreditacion__pinza {                    /* la pinza metálica */
+  width: 34px; height: 18px; margin-top: -4px;
+  background: linear-gradient(180deg, #b7c2cc, #8d9aa6); /* gris metal */
+  border-radius: 4px;
 }
-.radar__barrido {                      /* el haz que gira */
-  position: absolute; inset: 0;
-  background: conic-gradient(from 0deg, transparent 0deg, rgba(22, 125, 183, 0.28) 60deg, transparent 61deg);
-  animation: girar 3s linear infinite;
+.acreditacion__tarjeta {
+  position: relative; width: 250px; padding-bottom: 14px;
+  background: #fff; border-radius: 14px; overflow: hidden; /* overflow: recorta la línea del escáner */
+  box-shadow: 0 16px 40px rgba(16, 40, 60, 0.18);
+  margin-top: -4px;                       /* pegada a la pinza */
+  animation: balanceo 4s ease-in-out infinite; /* se balancea un poco, como colgada */
+  transform-origin: top center;           /* gira desde la pinza */
+  text-align: left;
 }
-.radar--rapido { width: 110px; height: 110px; }
-.radar--rapido .radar__barrido { animation-duration: 1s; }
+.acreditacion__agujero { width: 44px; height: 8px; margin: 10px auto 0; border-radius: 8px; background: #e9eef3; }
+.acreditacion__cabecera {                 /* franja azul de arriba */
+  margin-top: 10px; padding: 8px 16px;
+  background: var(--azul); color: #fff;
+  font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+}
+.acreditacion__cuerpo { display: flex; gap: 14px; padding: 14px 16px 10px; }
+.acreditacion__foto { width: 64px; height: 77px; flex: none; }
+.acreditacion__datos { display: grid; gap: 1px; font-family: var(--mono); font-size: 11px; }
+.acreditacion__datos dt { color: var(--gris); font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; }
+.acreditacion__datos dd { font-weight: 700; margin-bottom: 4px; }
+.acreditacion__barras {                   /* código de barras hecho con rayas */
+  height: 26px; margin: 0 16px;
+  background: repeating-linear-gradient(90deg, var(--texto) 0 2px, transparent 2px 4px, var(--texto) 4px 5px, transparent 5px 9px, var(--texto) 9px 12px, transparent 12px 14px);
+  opacity: 0.8;
+}
+.escaner-linea {                          /* la línea láser que baja y sube */
+  position: absolute; left: 0; right: 0; top: 0; height: 2px;
+  background: var(--naranja);
+  box-shadow: 0 0 12px 3px rgba(255, 145, 44, 0.6); /* brillo */
+  animation: escanear 2.6s ease-in-out infinite;
+}
 
-/* ===== PROGRESO Y MEDIDOR ===== */
-.progreso { display: flex; justify-content: space-between; align-items: center; }
-.pasos { display: flex; gap: 4px; }    /* las 15 rayitas */
-.paso { flex: 1; height: 4px; border-radius: 4px; background: var(--azul-linea); transition: background 0.3s ease; }
-.paso--hecho { background: var(--azul); }
-.paso--actual { background: var(--naranja); }
-
+/* ===== PREGUNTA (formulario) ===== */
+.formulario-cabecera { display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px dashed var(--azul-linea); }
 .medidor { background: var(--azul-suave); border-radius: 12px; padding: 12px 14px; }
 .medidor__fila { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
-.medidor__numero { color: var(--azul); font-weight: 800; font-size: 18px; font-variant-numeric: tabular-nums; } /* cifras del mismo ancho: no baila */
+.medidor__numero { font-family: var(--mono); color: var(--azul); font-weight: 700; font-size: 18px; }
 
 .barra { width: 100%; height: 6px; background: var(--azul-linea); border-radius: 10px; overflow: hidden; }
 .barra--gruesa { height: 12px; }
-.barra__relleno {
-  height: 100%; border-radius: 10px;
-  background: var(--azul);             /* azul liso: más limpio que el degradado */
-  transition: width 0.9s cubic-bezier(0.4, 0, 0.2, 1); /* crece suave */
-}
+.barra__relleno { height: 100%; border-radius: 10px; background: var(--azul); transition: width 0.9s cubic-bezier(0.4, 0, 0.2, 1); }
 
-/* ===== PREGUNTA Y OPCIONES ===== */
-.pregunta { font-size: 20px; font-weight: 600; line-height: 1.4; text-align: center; }
+.pregunta__num { display: block; font-family: var(--mono); color: var(--azul); font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+.pregunta { font-size: 20px; font-weight: 700; line-height: 1.35; }
 .opciones { display: flex; flex-direction: column; gap: 10px; }
 .opcion {
-  display: flex; align-items: center; gap: 12px;
+  position: relative; overflow: hidden;   /* para la barrita de avance */
+  display: flex; align-items: center; gap: 14px;
   width: 100%; padding: 14px 16px; text-align: left;
   background: #fff; color: var(--texto);
-  border: 2px solid var(--azul-linea); border-radius: 12px;
+  border: 1.5px solid var(--azul-linea); border-radius: 10px;
   font-size: 15px; line-height: 1.4; cursor: pointer;
   transition: border-color 0.2s ease, background 0.2s ease, transform 0.15s ease;
 }
 .opcion:hover { border-color: var(--azul); }
-.opcion:active { transform: scale(0.99); }          /* se hunde un poco al pulsar */
-.opcion--marcada { border-color: var(--azul); background: rgba(22, 125, 183, 0.08); font-weight: 600; }
-.opcion__tecla {                                    /* el numerito 1-4 */
+.opcion:active { transform: scale(0.99); } /* se hunde un poco al pulsar */
+.opcion--marcada { border-color: var(--azul); background: rgba(22, 125, 183, 0.06); font-weight: 600; }
+.opcion__casilla {                        /* casilla cuadrada de formulario */
   flex: none; width: 26px; height: 26px; display: grid; place-items: center;
-  border-radius: 8px; background: var(--azul-suave); color: var(--azul); font-size: 12px; font-weight: 700;
+  border: 1.5px solid var(--azul-linea); border-radius: 4px;
+  font-family: var(--mono); color: var(--azul); font-size: 12px; font-weight: 700;
 }
-.opcion--marcada .opcion__tecla { background: var(--azul); color: #fff; }
-.reaccion { min-height: 42px; text-align: center; color: var(--azul); font-size: 14px; font-weight: 600; } /* min-height: reserva el hueco para que nada salte */
+.opcion--marcada .opcion__casilla { background: var(--azul); border-color: var(--azul); color: #fff; font-size: 14px; }
+.opcion--avanzando::after {               /* barrita que se llena mientras avanza sola */
+  content: ''; position: absolute; left: 0; bottom: 0; height: 3px; width: 100%;
+  background: var(--azul); transform-origin: left;
+  animation: llenar 1.2s linear;          /* mismo tiempo que AVANCE_MS en App.jsx */
+}
+.reaccion { min-height: 42px; text-align: center; font-family: var(--mono); color: var(--azul); font-size: 13px; font-weight: 600; } /* min-height: reserva el hueco para que nada salte */
+.navegacion .enlace { text-decoration: none; font-weight: 600; } /* "← Atrás" sin subrayado */
+.navegacion { margin-top: auto; display: flex; justify-content: space-between; align-items: center; } /* atrás + pista, abajo del todo */
 
 /* ===== SELLOS (logros) ===== */
 .sello { display: flex; align-items: center; gap: 12px; }
 .sello__emoji { font-size: 26px; }
 .sello__texto { font-size: 14px; font-weight: 600; }
-.sello--grande {                                    /* el sello recién ganado */
+.sello--grande {                          /* el sello recién ganado */
   flex-direction: column; gap: 8px;
   padding: 26px 30px; border: 2px dashed var(--naranja); border-radius: 20px; background: #fff;
   animation: estampar 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.3); /* cae como un tampón */
 }
 .sello--grande .sello__emoji { font-size: 64px; }
 .sello--grande .sello__texto { font-size: 18px; font-weight: 800; }
+.sellos { list-style: none; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; } /* cuadrícula de insignias: 2 columnas en móvil */
+.sello--chip {                            /* cada sello en resultados: insignia con el emoji arriba */
+  flex-direction: column; justify-content: center; gap: 6px; padding: 14px 10px; text-align: center;
+  background: #fff; border: 1.5px dashed var(--naranja); border-radius: 14px;
+  animation: estampar 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.3) backwards; /* backwards: invisible hasta que le toca */
+}
+.sello--chip .sello__emoji { font-size: 28px; line-height: 1; }
+.sello--chip .sello__texto { font-size: 13px; line-height: 1.3; }
+.sello--secreto { border: 1.5px solid var(--tinta); background: #fdf3f3; } /* rojo tinta: se distingue de los normales */
+.sello__marca { font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--tinta); }
 .sellos-mini { display: flex; gap: 8px; }
-.sello-mini {                                       /* hueco de sello */
+.sello-mini {                             /* hueco de sello */
   width: 40px; height: 40px; display: grid; place-items: center;
   border: 2px dashed var(--azul-linea); border-radius: 50%; color: var(--gris); font-size: 18px;
 }
 .sello-mini--ganado { border-style: solid; border-color: var(--naranja); background: #fff; }
 
 /* ===== ANÁLISIS ===== */
-.analizando { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding: 40px 30px; text-align: center; }
-.analizando__texto { color: var(--azul); font-size: 18px; font-weight: 600; }
+.analizando { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 40px 30px; text-align: center; }
+.documento-mini {                         /* hojita con renglones */
+  position: relative; width: 96px; height: 124px; padding: 18px 14px;
+  display: flex; flex-direction: column; gap: 10px;
+  background: var(--papel); border-radius: 6px; overflow: hidden;
+  box-shadow: 0 10px 30px rgba(16, 40, 60, 0.15);
+}
+.documento-mini span { height: 5px; border-radius: 3px; background: var(--azul-linea); }
+.documento-mini span:nth-child(2n) { width: 70%; } /* renglones de distinto largo */
+.documento-mini .escaner-linea { animation-duration: 1.2s; }
+.analizando__texto { color: var(--azul); font-family: var(--mono); font-size: 15px; font-weight: 600; min-height: 40px; }
+.analizando__barra { width: 200px; height: 4px; border-radius: 4px; background: var(--azul-linea); overflow: hidden; }
+.analizando__barra div { height: 100%; background: var(--azul); transition: width 0.6s ease; }
 
-/* ===== RESULTADOS ===== */
-.resultados { gap: 30px; }                          /* más aire entre secciones en vez de cajas */
-.veredicto { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
-.numero-grande { color: var(--azul); font-size: 72px; font-weight: 800; line-height: 1; margin-top: 8px; font-variant-numeric: tabular-nums; }
+/* ===== AVISO DE NIVEL ===== */
+.aviso {
+  position: fixed; top: 72px; left: 50%; z-index: 20; transform: translateX(-50%); /* debajo de la cabecera, centrado */
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 20px; border-radius: 14px; background: #fff;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  font-size: 14px; max-width: calc(100% - 32px);
+  animation: aviso 2.6s ease forwards;    /* entra, espera y se va */
+}
+.aviso--sube { border-left: 4px solid var(--naranja); }
+.aviso--baja { border-left: 4px solid var(--azul); }
+.aviso__flecha { font-size: 22px; }
+.aviso__tipo { display: block; font-family: var(--mono); color: var(--gris); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
 
-.escala { list-style: none; display: flex; gap: 5px; width: 100%; max-width: 320px; } /* 6 tramos en fila */
-.escala__tramo { flex: 1; height: 8px; border-radius: 8px; background: var(--azul-linea); transition: background 0.4s ease; }
-.escala__tramo--lleno { background: var(--azul); }  /* tramos hasta tu nivel */
+/* ===== RESULTADOS: EL INFORME ===== */
+.resultados { gap: 30px; }                /* aire entre secciones en vez de cajas */
+
+.informe {                                /* la hoja del expediente */
+  background: var(--papel);
+  border: 1px solid rgba(16, 40, 60, 0.12); border-radius: 6px;
+  box-shadow: 0 14px 40px rgba(16, 40, 60, 0.10);
+  overflow: hidden;
+}
+.informe__cabecera {                      /* membrete: dos líneas de máquina de escribir */
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px;
+  padding: 10px 16px;
+  border-bottom: 2px solid var(--texto);
+  font-family: var(--mono); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px;
+}
+.informe__cuerpo { position: relative; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 64px 18px 24px; text-align: center; } /* arriba deja sitio para el sello */
+
+.sello-confidencial {                     /* tampón rojo torcido */
+  position: absolute; top: 14px; right: 10px;
+  padding: 4px 10px;
+  border: 3px double var(--tinta); border-radius: 4px;
+  color: var(--tinta); font-family: var(--mono); font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+  transform: rotate(12deg); opacity: 0.85;
+  animation: confidencial 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.3) 0.9s backwards; /* llega después del título */
+}
+
+.numero-grande { font-family: var(--mono); color: var(--azul); font-size: 64px; font-weight: 700; line-height: 1; margin-top: 8px; }
+
+.escala { list-style: none; display: flex; gap: 5px; width: 100%; max-width: 300px; } /* 6 tramos en fila */
+.escala__tramo { flex: 1; height: 8px; border-radius: 2px; background: var(--azul-linea); transition: background 0.4s ease; }
+.escala__tramo--lleno { background: var(--azul); } /* tramos hasta tu nivel */
 .escala__tramo:nth-child(2) { transition-delay: 0.1s; } /* se rellenan uno detrás de otro */
 .escala__tramo:nth-child(3) { transition-delay: 0.2s; }
 .escala__tramo:nth-child(4) { transition-delay: 0.3s; }
 .escala__tramo:nth-child(5) { transition-delay: 0.4s; }
 .escala__tramo:nth-child(6) { transition-delay: 0.5s; }
 
-.diagnostico { font-size: 17px; line-height: 1.6; text-align: center; } /* el mensaje, sin caja */
-.lista { list-style: none; display: grid; gap: 8px; align-self: center; font-size: 14px; line-height: 1.5; color: var(--gris); }
+.ficha { width: 100%; margin-top: 14px; border-top: 1px solid var(--azul-linea); text-align: left; } /* campos del expediente */
+.ficha div { display: grid; grid-template-columns: 112px 1fr; gap: 10px; padding: 9px 0; border-bottom: 1px dashed var(--azul-linea); }
+.ficha dt { font-family: var(--mono); color: var(--gris); font-size: 11px; font-weight: 600; text-transform: uppercase; padding-top: 2px; }
+.ficha dd { font-size: 14px; font-weight: 600; }
+
+.observaciones { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-top: 10px; text-align: left; }
+.diagnostico { font-size: 16px; line-height: 1.6; }
+.lista { list-style: none; display: grid; gap: 6px; font-size: 14px; line-height: 1.5; color: var(--gris); }
 .lista li::before { content: '✓  '; color: var(--azul); font-weight: 700; } /* el check delante de cada rasgo */
 
 .bloque { display: flex; flex-direction: column; gap: 14px; padding-top: 26px; border-top: 1px solid var(--azul-linea); } /* sección separada por una línea fina */
 .bloque--centrado { align-items: center; text-align: center; }
-.bloque > .etiqueta { text-align: center; }
-
-.sellos { list-style: none; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; } /* los sellos se colocan solos en filas */
-.sello--chip {                                      /* cada sello, como un tampón */
-  gap: 8px; padding: 8px 14px 8px 10px;
-  background: #fff; border: 1.5px dashed var(--naranja); border-radius: 50px;
-  animation: estampar 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.3) backwards; /* backwards: invisible hasta que le toca */
-}
-.sello--chip .sello__emoji { font-size: 20px; }
-.sello--chip .sello__texto { font-size: 13px; }
 
 .detalle { border-top: 1px solid var(--azul-linea); padding-top: 18px; }
 .detalle summary { cursor: pointer; text-align: center; color: var(--azul); font-size: 14px; font-weight: 600; } /* el texto que despliega */
 .metrica { margin-top: 16px; }
 .metrica__fila { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; }
-.metrica__fila strong { color: var(--azul); }
+.metrica__fila strong { font-family: var(--mono); color: var(--azul); }
 
 .caja { background: var(--azul-suave); border-radius: var(--radio); padding: 22px; }
 .caja--naranja { background: rgba(255, 145, 44, 0.08); display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
 .caja--naranja .boton { margin-top: 10px; }
 .roles { font-size: 17px; font-weight: 700; line-height: 1.4; }
 
+/* ===== COMPARTIR, RETO Y COLECCIÓN ===== */
 .compartir { display: flex; flex-direction: column; align-items: center; gap: 18px; }
-.tarjeta { width: 100%; max-width: 220px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12); }
+.tarjeta { width: 100%; max-width: 220px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12); animation: cromo 0.8s cubic-bezier(0.2, 0.8, 0.3, 1.1); } /* aparece girando como un cromo */
 .acciones { display: flex; flex-direction: column; gap: 10px; align-items: center; width: 100%; max-width: 260px; }
-.acciones .boton { width: 100%; padding: 12px 20px; font-size: 13px; }
+.acciones .boton { width: 100%; padding: 12px 20px; font-size: 14px; }
+
+.duelo { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 20px; border: 2px solid var(--naranja); border-radius: var(--radio); background: #fff; text-align: center; }
+.duelo__marcador { display: flex; align-items: center; justify-content: center; gap: 18px; }
+.duelo__lado { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 90px; }
+.duelo__lado strong { font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--gris); }
+.duelo__lado--tuyo strong { color: var(--azul); }
+.duelo__vs { font-family: var(--mono); font-weight: 700; color: var(--naranja); }
+.duelo__veredicto { font-size: 16px; font-weight: 600; }
+
+.reto { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; padding-top: 22px; border-top: 1px dashed var(--azul-linea); }
+.reto__fila { display: flex; gap: 8px; width: 100%; max-width: 420px; }
+.reto__fila .boton { flex: none; padding: 12px 20px; font-size: 14px; }
+.campo { flex: 1; min-width: 0; padding: 12px 16px; border: 1.5px solid var(--azul-linea); border-radius: 50px; font: inherit; font-size: 14px; } /* min-width 0: deja que se encoja en móvil */
+.campo:focus { border-color: var(--azul); outline: none; }
+
+.coleccion { display: flex; flex-direction: column; align-items: center; gap: 10px; padding-top: 22px; border-top: 1px dashed var(--azul-linea); }
+.coleccion__lista { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; width: 100%; max-width: 360px; }
+.coleccion__pieza { padding: 7px 4px; border-radius: 6px; border: 1.5px dashed var(--azul-linea); color: var(--gris); font-family: var(--mono); font-size: 11px; font-weight: 600; text-align: center; }
+.coleccion__pieza--tuya { border-style: solid; border-color: var(--azul); background: var(--azul); color: #fff; }
 
 .creadora { padding-top: 30px; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; border-top: 1px solid var(--azul-linea); }
 .creadora__foto { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; object-position: center 30%; border: 3px solid var(--azul); }
@@ -230,16 +332,34 @@ button { font: inherit; }              /* los botones usan la misma fuente que e
 @media (min-width: 768px) {
   .marco { flex: none; min-height: 680px; margin: 40px auto; background: #fff; border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); }
   .pantalla { padding: 40px 48px; }
+  .pantalla--portada { padding-top: 0; } /* también en escritorio la cinta sale del borde de arriba */
   .titulo { font-size: 38px; }
   .pregunta { font-size: 22px; }
+  .informe__cuerpo { padding: 64px 40px 30px; }
+  .numero-grande { font-size: 76px; }
+  .sellos { grid-template-columns: repeat(3, 1fr); } /* 3 columnas en escritorio */
   .compartir { flex-direction: row; justify-content: center; gap: 28px; } /* tarjeta a la izquierda, botones a la derecha */
 }
 
 /* ===== ANIMACIONES ===== */
 @keyframes entrar { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
-@keyframes girar { to { transform: rotate(360deg); } }
-@keyframes revelar { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: none; } }
+@keyframes deslizar { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+@keyframes escanear { 0%, 100% { top: 0; } 50% { top: calc(100% - 2px); } } /* baja hasta el fondo y vuelve */
+@keyframes balanceo { 0%, 100% { transform: rotate(-1.5deg); } 50% { transform: rotate(1.5deg); } }
 @keyframes estampar { from { opacity: 0; transform: scale(1.6) rotate(-8deg); } to { opacity: 1; transform: none; } }
+@keyframes tampon {                       /* cae grande y girado, rebota y se asienta */
+  0% { opacity: 0; transform: scale(2.4) rotate(-8deg); }
+  60% { opacity: 1; transform: scale(0.94) rotate(1deg); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes confidencial { from { opacity: 0; transform: scale(2) rotate(0deg); } to { opacity: 0.85; transform: rotate(12deg); } }
+@keyframes llenar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes aviso {
+  0% { opacity: 0; transform: translate(-50%, -12px); }
+  12%, 85% { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, -12px); }
+}
+@keyframes cromo { from { opacity: 0; transform: perspective(900px) rotateY(90deg); } to { opacity: 1; transform: perspective(900px) rotateY(0); } }
 
 /* Si la persona ha pedido menos movimiento en su sistema, quitamos animaciones */
 @media (prefers-reduced-motion: reduce) {

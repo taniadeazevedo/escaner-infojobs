@@ -6,6 +6,7 @@
 
 import { BLOQUES } from '../data/bloques.js'; // las preguntas
 import { ARQUETIPOS, ESCALA } from '../data/arquetipos.js'; // los 6 resultados y sus límites
+import { SECRETOS } from '../data/secretos.js'; // los sellos secretos
 
 export const PREGUNTAS = BLOQUES.flatMap((bloque) => bloque.preguntas); // las 15 preguntas seguidas, sin bloques
 export const TOTAL = PREGUNTAS.length; // 15
@@ -30,6 +31,31 @@ export const nivelCorporativo = (respuestas) => {
   return valores.length ? aPorcentaje(media(valores)) : null; // sin respuestas no hay nivel
 };
 
+// En qué tramo de la escala (0 a 5) cae una nota media de 1 a 4
+const posicionDeMedia = (notaMedia) => ESCALA.findIndex((tramo) => notaMedia <= tramo.hasta);
+
+// Tramo de la escala con las respuestas que haya hasta ahora. null si aún no hay corporativas.
+// Sirve para avisar de "ascensos" y "bajadas" durante el test.
+export const posicionParcial = (respuestas) => {
+  const valores = valoresCorporativos(respuestas); // valores de 1 a 4 respondidos
+  return valores.length ? posicionDeMedia(media(valores)) : null; // sin respuestas no hay tramo
+};
+
+// Secretos que dependen de cómo juegas (no se pueden calcular con las respuestas)
+export const EXTRAS = ['speedrun', 'contrato', 'atras'];
+
+// Sellos secretos ganados. "extras" son los de cómo juegas, ya decididos fuera.
+export const calcularSecretos = (respuestas, extras = []) => {
+  const valores = valoresCorporativos(respuestas); // los 10 valores de 1 a 4
+  const cuantas = (v) => valores.filter((x) => x === v).length; // cuántas respuestas tienen el valor v
+  const perfiles = new Set(respuestas.map((opcion, i) => PREGUNTAS[i].r[opcion].perfil).filter(Boolean)); // perfiles distintos elegidos
+  const ganados = new Set(extras.filter((id) => EXTRAS.includes(id))); // solo extras conocidos (vienen de la URL)
+  if ([1, 2, 3, 4].some((v) => cuantas(v) >= 8)) ganados.add('coherencia'); // casi todo del mismo nivel
+  if (cuantas(1) >= 3 && cuantas(4) >= 3) ganados.add('montana'); // de un extremo a otro
+  if (perfiles.size === 4) ganados.add('camaleon'); // los 4 perfiles
+  return SECRETOS.filter((secreto) => ganados.has(secreto.id)); // en el orden de la lista
+};
+
 // Sello (logro) que se gana en un bloque ya terminado
 export const selloDeBloque = (respuestas, numBloque) => {
   const valores = valoresCorporativos(respuestas, numBloque * 3, numBloque * 3 + 3); // las 2 corporativas de ese bloque
@@ -50,9 +76,9 @@ const calcularPerfil = (respuestas) => {
 };
 
 // Resultado completo del test (necesita las 15 respuestas)
-export const calcularResultado = (respuestas) => {
+export const calcularResultado = (respuestas, extras = []) => {
   const notaMedia = media(valoresCorporativos(respuestas)); // media de 1 a 4 de las 10 preguntas corporativas
-  const posicion = ESCALA.findIndex((tramo) => notaMedia <= tramo.hasta); // en qué tramo de la escala cae
+  const posicion = posicionDeMedia(notaMedia); // en qué tramo de la escala cae
 
   return {
     arquetipo: ARQUETIPOS[ESCALA[posicion].id], // el arquetipo que te toca
@@ -63,6 +89,7 @@ export const calcularResultado = (respuestas) => {
       nombre: bloque.metrica, // nombre de la barra
       valor: aPorcentaje(media(valoresCorporativos(respuestas, n * 3, n * 3 + 3))) // % de ese bloque
     })),
-    sellos: BLOQUES.map((_, n) => selloDeBloque(respuestas, n)) // los 5 logros
+    sellos: BLOQUES.map((_, n) => selloDeBloque(respuestas, n)), // los 5 logros
+    secretos: calcularSecretos(respuestas, extras) // los sellos secretos ganados
   };
 };
